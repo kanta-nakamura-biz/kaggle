@@ -1,0 +1,43 @@
+experiment:
+  name: "mitsui_baseline"
+  description: "MITSUI商品価格予測ベースライン"
+  competition_name: "mitsui-commodity-prediction-challenge"
+  seed: 42
+  
+data:
+  train_path: "data/raw/train.csv"
+  test_path: "data/raw/test.csv"
+  target_column: "target"  # ターゲット列名を設定
+  id_column: "id"  # ID列名を設定
+  
+preprocessing:
+  missing_strategy: "mean"  # mean, median, mode, drop
+  scaling: "standard"  # standard, minmax, robust, none
+  encoding: "onehot"  # onehot, label, target, none
+  
+model:
+  name: "lightgbm"  # lightgbm, xgboost, catboost, sklearn
+  params:
+    objective: "regression"  # regression, binary, multiclass
+    metric: "rmse"  # rmse, mae, auc, logloss
+    boosting_type: "gbdt"
+    num_leaves: 31
+    learning_rate: 0.05
+    feature_fraction: 0.9
+    bagging_fraction: 0.8
+    bagging_freq: 5
+    verbose: -1
+    
+training:
+  cv_folds: 5
+  cv_strategy: "time_series"  # kfold, stratified, group, time_series
+  early_stopping_rounds: 100
+  num_boost_round: 10000
+  
+evaluation:
+  metrics: ["rmse", "mae", "r2"]  # 回帰の場合
+  
+output:
+  model_dir: "models/"
+  submission_dir: "submissions/"
+  log_dir: "logs/"
