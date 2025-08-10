@@ -1,0 +1,51 @@
+experiment:
+  name: "baseline"
+  description: "ベースライン実験"
+  seed: 42
+  
+data:
+  train_path: "data/raw/train.csv"
+  test_path: "data/raw/test.csv"
+  target_column: "target"
+  id_column: "id"
+  
+preprocessing:
+  missing_strategy: "mean"  # mean, median, mode, drop
+  scaling: "standard"  # standard, minmax, robust, none
+  encoding: "onehot"  # onehot, label, target, none
+  
+feature_selection:
+  method: "none"  # none, correlation, mutual_info, rfe
+  n_features: 100
+  
+model:
+  name: "lightgbm"  # lightgbm, xgboost, catboost, sklearn
+  params:
+    objective: "regression"
+    metric: "rmse"
+    boosting_type: "gbdt"
+    num_leaves: 31
+    learning_rate: 0.05
+    feature_fraction: 0.9
+    bagging_fraction: 0.8
+    bagging_freq: 5
+    verbose: -1
+    
+training:
+  cv_folds: 5
+  cv_strategy: "kfold"  # kfold, stratified, group, time_series
+  early_stopping_rounds: 100
+  num_boost_round: 10000
+  
+evaluation:
+  metrics: ["rmse", "mae", "r2"]
+  
+output:
+  model_dir: "models/"
+  submission_dir: "submissions/"
+  log_dir: "logs/"
+  
+optuna:
+  n_trials: 100
+  direction: "minimize"  # minimize, maximize
+  sampler: "tpe"  # tpe, random, cmaes
