@@ -125,14 +125,6 @@ def main():
     print("Creating submission file...")
     submission_data = []
     
-    target_mapping = {}
-    for idx, row in target_pairs.iterrows():
-        target_mapping[f"target_{idx}"] = {
-            'symbol_1': row['symbol_1'],
-            'symbol_2': row['symbol_2'],
-            'lag': row['lag']
-        }
-    
     for test_idx in range(len(X_test)):
         for target_idx, target_col in enumerate(target_cols):
             if target_col in predictions:
