@@ -134,10 +134,19 @@ class MitsuiPredictor:
         train = pd.read_csv('/kaggle/input/mitsui-commodity-prediction-challenge/train.csv')
         train_labels = pd.read_csv('/kaggle/input/mitsui-commodity-prediction-challenge/train_labels.csv')
         
-        train_features = self.feature_engineer.create_features_realtime(
-            train.iloc[-100:], 
-            {'lag_1': train.iloc[-110:-100], 'lag_2': train.iloc[-120:-110]}
-        )
+        train = train.iloc[:-90]
+        train_labels = train_labels.iloc[:-90]
+        
+        sample_size = min(100, len(train))
+        train_sample = train.iloc[-sample_size:]
+        
+        lag_data = {}
+        if len(train) > sample_size + 10:
+            lag_data['lag_1'] = train.iloc[-(sample_size+10):-sample_size]
+        if len(train) > sample_size + 20:
+            lag_data['lag_2'] = train.iloc[-(sample_size+20):-(sample_size+10)]
+        
+        train_features = self.feature_engineer.create_features_realtime(train_sample, lag_data)
         
         self.feature_cols = [col for col in train_features.columns if col != 'date_id']
         
@@ -145,7 +154,7 @@ class MitsuiPredictor:
         self.train_median_values = X_train.median()
         
         X_train = X_train.fillna(self.train_median_values)
-        y_train = train_labels[self.target_cols].fillna(0)
+        y_train_sample = train_labels.iloc[-sample_size:][self.target_cols].fillna(0)
         
         constant_cols = []
         for col in X_train.columns:
@@ -176,7 +185,7 @@ class MitsuiPredictor:
             if i % 50 == 0:
                 print(f"Training model {i+1}/{len(self.target_cols)}")
             
-            y_target = y_train[target_col]
+            y_target = y_train_sample[target_col]
             
             train_data = lgb.Dataset(X_train, label=y_target)
             
@@ -250,7 +259,10 @@ def predict(test: pl.DataFrame,
     
     return predictions_df
 
-if __name__ == "__main__":
-    print("MITSUI Commodity Prediction - Inference Server Ready")
-    print(f"Target columns: {NUM_TARGET_COLUMNS}")
-    print("Waiting for inference requests...")
+# Instantiate the inference server
+inference_server = kaggle_evaluation.mitsui_inference_server.MitsuiInferenceServer(predict)
+
+if os.getenv('KAGGLE_IS_COMPETITION_RERUN'):
+    inference_server.serve()
+else:
+    inference_server.run_local_gateway(('/kaggle/input/mitsui-commodity-prediction-challenge/',))
