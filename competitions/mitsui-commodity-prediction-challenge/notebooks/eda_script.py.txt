@@ -1,0 +1,58 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import warnings
+warnings.filterwarnings("ignore")
+
+# 設定
+plt.rcParams["figure.figsize"] = (12, 8)
+pd.set_option("display.max_columns", None)
+
+# データの読み込み
+train = pd.read_csv("../data/raw/train.csv")
+test = pd.read_csv("../data/raw/test.csv")
+
+print(f"訓練データ形状: {train.shape}")
+print(f"テストデータ形状: {test.shape}")
+
+# 基本情報の表示
+print("=== 訓練データの基本情報 ===")
+print(train.info())
+print("\n=== 訓練データの統計情報 ===")
+print(train.describe())
+
+# 欠損値の確認
+print("=== 訓練データの欠損値 ===")
+print(train.isnull().sum())
+print("\n=== テストデータの欠損値 ===")
+print(test.isnull().sum())
+
+# ターゲット変数の分布
+if "target" in train.columns:
+    plt.figure(figsize=(12, 4))
+    plt.subplot(1, 2, 1)
+    train["target"].hist(bins=50)
+    plt.title("Target Distribution")
+    plt.subplot(1, 2, 2)
+    train["target"].plot(kind="box")
+    plt.title("Target Box Plot")
+    plt.tight_layout()
+    plt.show()
+
+# 数値特徴量の相関行列
+numeric_cols = train.select_dtypes(include=[np.number]).columns
+if len(numeric_cols) > 1:
+    plt.figure(figsize=(12, 10))
+    correlation_matrix = train[numeric_cols].corr()
+    sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", center=0)
+    plt.title("Feature Correlation Matrix")
+    plt.show()
+
+# カテゴリ変数の確認
+categorical_cols = train.select_dtypes(include=["object"]).columns
+print(f"カテゴリ変数: {list(categorical_cols)}")
+
+for col in categorical_cols[:5]:  # 最初の5つのカテゴリ変数
+    print(f"\n=== {col} ===")
+    print(train[col].value_counts().head(10))

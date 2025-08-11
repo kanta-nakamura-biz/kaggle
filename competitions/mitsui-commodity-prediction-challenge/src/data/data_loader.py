@@ -13,7 +13,8 @@ class MitsuiDataLoader(BaseDataLoader):
     """
     
     def __init__(self, data_dir: str = "data/raw/"):
-        super().__init__()
+        config = {'data_dir': data_dir}
+        super().__init__(config)
         self.data_dir = Path(data_dir)
     
     def load_competition_data(self) -> Dict[str, pd.DataFrame]:
